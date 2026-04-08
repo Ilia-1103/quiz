@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Своя игра</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    text-align: center;
+    background: linear-gradient(to bottom, #ff9eb5, #ffffff);
+}
+
+h1 {
+    margin-top: 20px;
+    font-size: 42px;
+    color: #fff;
+}
+
+.subtitle {
+    margin-bottom: 30px;
+    font-size: 18px;
+    color: #fff;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    padding: 20px;
+}
+
+.column {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    width: 200px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.column-title {
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.card {
+    background: linear-gradient(135deg, #ffd6e0, #fff);
+    border-radius: 12px;
+    padding: 15px;
+    margin: 8px 0;
+    cursor: pointer;
+    font-size: 20px;
+    transition: 0.2s;
+}
+
+.card:hover {
+    transform: scale(1.05);
+}
+
+.hidden {
+    visibility: hidden;
+}
+
+/* Модалка */
+.modal {
+    display: none;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background: rgba(0,0,0,0.6);
+}
+
+.modal-content {
+    background: white;
+    margin: 5% auto;
+    padding: 40px;
+    width: 600px;
+    border-radius: 20px;
+    position: relative;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {transform: scale(0.8); opacity: 0;}
+    to {transform: scale(1); opacity: 1;}
+}
+
+.close {
+    position: absolute;
+    right: 15px;
+    top: 10px;
+    cursor: pointer;
+    font-size: 22px;
+}
+
+/* Вопрос */
+#question {
+    font-size: 22px;
+    line-height: 1.5;
+}
+
+/* Кнопка */
+button {
+    display: block;
+    margin: 25px auto;
+    padding: 14px 30px;
+    border: none;
+    border-radius: 25px;
+    background: linear-gradient(135deg, #ff7aa2, #ffb6c1);
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button:hover {
+    transform: scale(1.05);
+}
+
+#answer {
+    font-size: 20px;
+    margin-top: 15px;
+}
+
+/* Конфетти */
+.confetti-piece {
+    position: fixed;
+    width: 8px;
+    height: 14px;
+    top: 0;
+    opacity: 0.8;
+    animation: confetti-fall 1.5s linear forwards;
+}
+
+@keyframes confetti-fall {
+    to {
+        transform: translateY(500px) rotate(360deg);
+        opacity: 0;
+    }
+}
+</style>
+
+</head>
+<body>
+
+<h1>Своя игра</h1>
+<div class="subtitle">Выберите категорию и стоимость вопроса</div>
+
+<div class="container" id="game"></div>
+
+<div class="modal" id="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">✖</span>
+        <h2 id="question"></h2>
+        <button id="answerBtn">Правильный ответ</button>
+        <p id="answer"></p>
+    </div>
+</div>
+
+<script>
+const data = [
+{
+    title: "Общие вопросы",
+    questions: [
+        ["Где и при каких обстоятельствах они познакомились?", "В Дайвинчике"],
+        ["Как зовут будущего мужа?", "Тузилов Сергей Александрович"],
+        ["Кто первым признался в любви?", "Сергей"],
+        ["Где было первое свидание?", "После работы покатались на машине"],
+        ["Какой был первый подарок жениха невесте?", "Цветы и коробка конфет"]
+    ]
+},
+{
+    title: "Про невесту",
+    questions: [
+        ["Кем Марина хотела стать в детстве?", "Учителем рисования"],
+        ["В каком возрасте невеста впервые поцеловалась?", "В 15 лет"],
+        ["Сколько просмотров набрал самый большой тик ток невесты?", "300 тысяч"],
+        ["Какая была ее самая дикая выходка в универе/школе?", "не было таких"],
+        ["Что невеста любит больше всего?", "Жениха конечно"]
+    ]
+},
+{
+    title: "Про жениха",
+    questions: [
+        ["Какой размер ноги у жениха?", "45 размер"],
+        ["Что жених обычно ест на завтрак?", "Яичницу, но чаще всего не завтракает"],
+        ["Какое хобби жениха бесит невесту?", "Компьютерные игры"],
+        ["Какая у жениха смешная привычка?", "При прощание говорить \"с Новым годом\" или \"с днём рождения \""],
+        ["Какое слово жених произносит чаще всего?", "Здравствуй, солнце"]
+    ]
+}
+];
+
+const game = document.getElementById("game");
+const modal = document.getElementById("modal");
+const questionEl = document.getElementById("question");
+const answerEl = document.getElementById("answer");
+const answerBtn = document.getElementById("answerBtn");
+
+let currentCard = null;
+
+data.forEach(col => {
+    const column = document.createElement("div");
+    column.className = "column";
+
+    const title = document.createElement("div");
+    title.className = "column-title";
+    title.innerText = col.title;
+
+    column.appendChild(title);
+
+    col.questions.forEach((q, i) => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerText = (i + 1) * 100;
+
+        card.onclick = () => openModal(q[0], q[1], card);
+
+        column.appendChild(card);
+    });
+
+    game.appendChild(column);
+});
+
+function openModal(question, answer, card) {
+    modal.style.display = "block";
+    questionEl.innerText = question;
+    answerEl.innerText = "";
+    answerBtn.style.display = "block";
+
+    currentCard = card;
+
+    answerBtn.onclick = () => {
+        answerEl.innerText = answer;
+        answerBtn.style.display = "none";
+        launchConfetti();
+    };
+}
+
+function closeModal() {
+    modal.style.display = "none";
+    if (currentCard) currentCard.classList.add("hidden");
+}
+
+function launchConfetti() {
+    const colors = ["#ff7aa2", "#ffd1dc", "#fff", "#ffb6c1"];
+
+    for (let i = 0; i < 60; i++) {
+        const confetti = document.createElement("div");
+        confetti.className = "confetti-piece";
+
+        confetti.style.left = Math.random() * 100 + "%";
+        confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+
+        confetti.style.transform = `rotate(${Math.random()*360}deg)`;
+
+        document.body.appendChild(confetti);
+
+        setTimeout(() => confetti.remove(), 1500);
+    }
+}
+</script>
+
+</body>
+</html>
