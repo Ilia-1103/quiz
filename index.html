@@ -13,8 +13,8 @@ body {
 }
 
 h1 {
-    margin-top: 20px;
-    font-size: 42px;
+    margin-top: 30px;
+    font-size: 50px;
     color: #fff;
 }
 
@@ -24,42 +24,71 @@ h1 {
     color: #fff;
 }
 
+/* Контейнер */
 .container {
     display: flex;
     justify-content: center;
-    gap: 30px;
-    padding: 20px;
+    gap: 50px;
+    padding: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
+/* Колонки */
 .column {
     background: white;
-    border-radius: 20px;
-    padding: 20px;
-    width: 200px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    border-radius: 25px;
+    padding: 25px;
+    width: 260px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
 }
 
 .column-title {
     font-weight: bold;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
+    font-size: 18px;
 }
 
+/* Карточка (flip) */
 .card {
-    background: linear-gradient(135deg, #ffd6e0, #fff);
-    border-radius: 12px;
-    padding: 15px;
-    margin: 8px 0;
+    perspective: 1000px;
+    margin: 12px 0;
+}
+
+.card-inner {
+    position: relative;
+    width: 100%;
+    height: 70px;
+    text-align: center;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
     cursor: pointer;
-    font-size: 20px;
-    transition: 0.2s;
 }
 
-.card:hover {
-    transform: scale(1.05);
+.card.flip .card-inner {
+    transform: rotateY(180deg);
 }
 
-.hidden {
-    visibility: hidden;
+.card-front, .card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backface-visibility: hidden;
+    font-size: 22px;
+}
+
+.card-front {
+    background: linear-gradient(135deg, #ffd6e0, #fff);
+}
+
+.card-back {
+    background: linear-gradient(135deg, #ff7aa2, #ffb6c1);
+    color: white;
+    transform: rotateY(180deg);
 }
 
 /* Модалка */
@@ -77,8 +106,8 @@ h1 {
     background: white;
     margin: 5% auto;
     padding: 40px;
-    width: 600px;
-    border-radius: 20px;
+    width: 650px;
+    border-radius: 25px;
     position: relative;
     animation: fadeIn 0.3s ease;
 }
@@ -96,17 +125,16 @@ h1 {
     font-size: 22px;
 }
 
-/* Вопрос */
 #question {
-    font-size: 22px;
+    font-size: 24px;
     line-height: 1.5;
 }
 
 /* Кнопка */
 button {
     display: block;
-    margin: 25px auto;
-    padding: 14px 30px;
+    margin: 30px auto;
+    padding: 14px 35px;
     border: none;
     border-radius: 25px;
     background: linear-gradient(135deg, #ff7aa2, #ffb6c1);
@@ -121,7 +149,7 @@ button:hover {
 }
 
 #answer {
-    font-size: 20px;
+    font-size: 22px;
     margin-top: 15px;
 }
 
@@ -137,7 +165,7 @@ button:hover {
 
 @keyframes confetti-fall {
     to {
-        transform: translateY(500px) rotate(360deg);
+        transform: translateY(600px) rotate(720deg);
         opacity: 0;
     }
 }
@@ -215,9 +243,18 @@ data.forEach(col => {
     col.questions.forEach((q, i) => {
         const card = document.createElement("div");
         card.className = "card";
-        card.innerText = (i + 1) * 100;
 
-        card.onclick = () => openModal(q[0], q[1], card);
+        card.innerHTML = `
+            <div class="card-inner">
+                <div class="card-front">${(i + 1) * 100}</div>
+                <div class="card-back">?</div>
+            </div>
+        `;
+
+        card.onclick = () => {
+            card.classList.add("flip");
+            setTimeout(() => openModal(q[0], q[1], card), 400);
+        };
 
         column.appendChild(card);
     });
@@ -242,13 +279,13 @@ function openModal(question, answer, card) {
 
 function closeModal() {
     modal.style.display = "none";
-    if (currentCard) currentCard.classList.add("hidden");
+    if (currentCard) currentCard.style.visibility = "hidden";
 }
 
 function launchConfetti() {
     const colors = ["#ff7aa2", "#ffd1dc", "#fff", "#ffb6c1"];
 
-    for (let i = 0; i < 60; i++) {
+    for (let i = 0; i < 70; i++) {
         const confetti = document.createElement("div");
         confetti.className = "confetti-piece";
 
