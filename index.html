@@ -29,9 +29,9 @@ h1 {
 .container {
     display: flex;
     justify-content: center;
-    gap: 50px;
+    gap: 30px; /* уменьшили расстояние */
     padding: 40px;
-    max-width: 1200px;
+    max-width: 1600px;
     margin: 0 auto;
 }
 
@@ -40,8 +40,13 @@ h1 {
     background: white;
     border-radius: 25px;
     padding: 25px;
-    width: 260px;
+    width: 300px; /* сделали шире */
     box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+}
+
+/* ШИРОКИЙ БЛОК (невеста) */
+.column.wide {
+    width: 600px; /* в 2 раза шире */
 }
 
 .column-title {
@@ -50,10 +55,21 @@ h1 {
     font-size: 18px;
 }
 
+/* Сетка */
+.cards-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+/* Для невесты — 2 колонки */
+.column.wide .cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+}
+
 /* Карточки */
 .card {
     perspective: 1000px;
-    margin: 12px 0;
 }
 
 .card-inner {
@@ -78,7 +94,7 @@ h1 {
     justify-content: center;
     align-items: center;
     backface-visibility: hidden;
-    font-size: 22px;
+    font-size: 20px;
 }
 
 .card-front {
@@ -91,19 +107,17 @@ h1 {
     transform: rotateY(180deg);
 }
 
-/* Модалка с блюром */
+/* Модалка */
 .modal {
     display: none;
     position: fixed;
     inset: 0;
     backdrop-filter: blur(8px);
     background: rgba(0,0,0,0.4);
-
     justify-content: center;
     align-items: center;
 }
 
-/* Показываем flex при открытии */
 .modal.active {
     display: flex;
 }
@@ -152,11 +166,6 @@ button {
     color: white;
     font-size: 16px;
     cursor: pointer;
-    transition: 0.2s;
-}
-
-button:hover {
-    transform: scale(1.05);
 }
 
 #answer {
@@ -170,7 +179,6 @@ button:hover {
     width: 8px;
     height: 14px;
     top: 0;
-    opacity: 0.8;
     animation: confetti-fall 1.5s linear forwards;
 }
 
@@ -213,12 +221,19 @@ const data = [
 },
 {
     title: "Про невесту",
+    wide: true,
     questions: [
         ["Кем Марина хотела стать в детстве?", "Учителем рисования"],
         ["В каком возрасте невеста впервые поцеловалась?", "В 15 лет"],
-        ["Сколько просмотров набрал самый большой тик ток невесты?", "300 тысяч"],
+        ["Сколько просмотров набрал самый большой тик ток невесты?", "667 тысяч"],
         ["Какая была ее самая дикая выходка в универе/школе?", "не было таких"],
-        ["Что невеста любит больше всего?", "Жениха конечно"]
+        ["Что невеста любит больше всего?", "Жениха конечно"],
+
+        ["Сколько серьёзных отношений у Марины было до Сергея?", "Одни"],
+        ["Какую самую странную вещь Марина хранит в сумочке?", "Такой нет"],
+        ["Что делает невеста, когда её никто не видит?", "Разговаривает с Алисой"],
+        ["Какие блюдо от жениха Марине нравится больше всего?", "Просто суп"],
+        ["Что сказала Марина подружкам после первой встречи с Сергеем?", "Думала будут просто друзьями"]
     ]
 },
 {
@@ -244,12 +259,14 @@ let currentCard = null;
 data.forEach(col => {
     const column = document.createElement("div");
     column.className = "column";
+    if (col.wide) column.classList.add("wide");
 
     const title = document.createElement("div");
     title.className = "column-title";
     title.innerText = col.title;
 
-    column.appendChild(title);
+    const grid = document.createElement("div");
+    grid.className = "cards-grid";
 
     col.questions.forEach((q, i) => {
         const card = document.createElement("div");
@@ -257,7 +274,7 @@ data.forEach(col => {
 
         card.innerHTML = `
             <div class="card-inner">
-                <div class="card-front">${(i + 1) * 100}</div>
+                <div class="card-front">${(i % 5 + 1) * 100}</div>
                 <div class="card-back">?</div>
             </div>
         `;
@@ -267,9 +284,11 @@ data.forEach(col => {
             setTimeout(() => openModal(q[0], q[1], card), 400);
         };
 
-        column.appendChild(card);
+        grid.appendChild(card);
     });
 
+    column.appendChild(title);
+    column.appendChild(grid);
     game.appendChild(column);
 });
 
@@ -302,8 +321,6 @@ function launchConfetti() {
 
         confetti.style.left = Math.random() * 100 + "%";
         confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
-
-        confetti.style.transform = `rotate(${Math.random()*360}deg)`;
 
         document.body.appendChild(confetti);
 
